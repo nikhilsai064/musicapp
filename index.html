@@ -23,8 +23,6 @@
             height: 100vh;
             overflow: hidden;
         }
-
-        /* Sidebar Navigation */
         nav {
             width: 240px;
             background-color: var(--sidebar-color);
@@ -70,8 +68,6 @@
             grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
             gap: 20px;
         }
-
-        /* Music Card */
         .card {
             background-color: var(--card-bg);
             padding: 15px;
@@ -82,6 +78,9 @@
 
         .card:hover {
             background-color: #282828;
+            box-shadow: 0 5px 15px rgba(23, 121, 28, 0.4),0 5px 15px rgba(23, 121, 28, 0.4);
+            transition: transform 0.3s ease;
+            transform: scale(1.2);
         }
 
         .card img {
@@ -102,8 +101,6 @@
             color: var(--text-dim);
             font-size: 14px;
         }
-
-        /* Player Bar (Bottom) */
         .player-bar {
             position: fixed;
             bottom: 0;
@@ -117,7 +114,6 @@
             justify-content: space-between;
             padding: 0 20px;
         }
-
         .now-playing {
             display: flex;
             align-items: center;
@@ -130,7 +126,6 @@
             height: 56px;
             border-radius: 4px;
         }
-
         .controls {
             display: flex;
             flex-direction: column;
@@ -138,13 +133,11 @@
             width: 40%;
             gap: 10px;
         }
-
         .buttons {
             font-size: 20px;
             display: flex;
             gap: 20px;
         }
-
         .progress-bar {
             width: 100%;
             height: 4px;
@@ -175,7 +168,7 @@
 
     <nav>
         <div class="logo">Pulse.</div>
-        <a href="#">Home</a>
+        <a href="../musicapp/home/home.html">Home</a>
         <a href="#">Search</a>
         <a href="#">Your Library</a>
         <hr style="width: 100%; border: 0.5px solid #282828; margin: 10px 0;">
@@ -187,27 +180,27 @@
         <h2 class="section-title">Jump back in</h2>
         <div class="grid">
             <div class="card">
-                <img src="https://via.placeholder.com/150" alt="Album Art">
+                <img src="../musicapp/images/lofi-beats.webp" alt="Album Art">
                 <h4>Lo-Fi Beats</h4>
                 <p>Relaxing study music</p>
             </div>
             <div class="card">
-                <img src="https://via.placeholder.com/151" alt="Album Art">
+                <img src="../musicapp/images/images.jpg" alt="Album Art">
                 <h4>Midnight City</h4>
                 <p>Synthwave essentials</p>
             </div>
             <div class="card">
-                <img src="https://via.placeholder.com/152" alt="Album Art">
+                <img src="../musicapp/images/download.jpg" alt="Album Art">
                 <h4>Top Hits 2026</h4>
                 <p>The hottest tracks right now</p>
             </div>
             <div class="card">
-                <img src="https://via.placeholder.com/153" alt="Album Art">
+                <img src="../musicapp/images/deep.jpg" alt="Album Art">
                 <h4>Deep Focus</h4>
                 <p>Stay in the zone</p>
             </div>
             <div class="card">
-                <img src="https://via.placeholder.com/154" alt="Album Art">
+                <img src="../musicapp/images/coff.jpg" alt="Album Art">
                 <h4>Acoustic Coffee</h4>
                 <p>Chill morning vibes</p>
             </div>
@@ -216,7 +209,7 @@
 
     <footer class="player-bar">
         <div class="now-playing">
-            <img src="https://via.placeholder.com/151" alt="Current Track">
+            <img src="../musicapp/images/images.jpg" alt="Current Track">
             <div>
                 <div style="font-weight: bold;">Midnight City</div>
                 <div style="font-size: 12px; color: var(--text-dim);">The Midnight</div>

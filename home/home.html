@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+.hero {
+    width: 100vw;
+    height: 100vh;
+    background: linear-gradient(135deg, #1db954, #191414);
+    border-radius: 15px;
+    padding: 50px 40px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    margin-bottom: 40px;
+    animation: fadeIn 1s ease-in-out;
+    position: fixed;
+}
+.hero h1 {
+    font-size: 42px;
+    margin: 0;
+    font-weight: bold;
+    letter-spacing: 1px;
+}
+.hero p {
+    margin: 15px 0 25px;
+    font-size: 18px;
+    color: #f1f1f1;
+}
+.explore-btn {
+    width: 180px;
+    padding: 12px 0;
+    border: none;
+    border-radius: 30px;
+    background: white;
+    color: #121212;
+    font-weight: bold;
+    font-size: 15px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-decoration: none;
+}
+.explore-btn:hover {
+    transform: scale(1.08);
+    background: #1db954;
+    color: white;
+}
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+    </style>
+</head>
+<body>
+    <section class="hero">
+        <h1>Welcome to Pulse 🎵</h1>
+        <p>Your daily dose of music. Discover, Play & Feel the Beat.</p>
+        <button class="explore-btn"><a class="explore-btn" href="../index.html">Explore Now</a></button>
+    </section>
+</body>
+</html>
