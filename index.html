@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pulse Music Player</title>
+    <style>
+        :root {
+            --bg-color: #0f0f0f;
+            --sidebar-color: #000000;
+            --accent-color: #1db954;
+            --text-main: #ffffff;
+            --text-dim: #b3b3b3;
+            --card-bg: #181818;
+        }
+
+        body {
+            margin: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Sidebar Navigation */
+        nav {
+            width: 240px;
+            background-color: var(--sidebar-color);
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            color: var(--accent-color);
+            margin-bottom: 10px;
+        }
+
+        nav a {
+            color: var(--text-dim);
+            text-decoration: none;
+            font-weight: 600;
+            transition: 0.3s;
+        }
+
+        nav a:hover {
+            color: var(--text-main);
+        }
+
+        /* Main Content Area */
+        main {
+            flex-grow: 1;
+            padding: 30px;
+            overflow-y: auto;
+            background: linear-gradient(to bottom, #222, #0f0f0f);
+        }
+
+        .section-title {
+            margin-bottom: 20px;
+            font-size: 24px;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 20px;
+        }
+
+        /* Music Card */
+        .card {
+            background-color: var(--card-bg);
+            padding: 15px;
+            border-radius: 8px;
+            transition: background 0.3s;
+            cursor: pointer;
+        }
+
+        .card:hover {
+            background-color: #282828;
+        }
+
+        .card img {
+            width: 100%;
+            aspect-ratio: 1;
+            border-radius: 4px;
+            margin-bottom: 10px;
+            object-fit: cover;
+        }
+
+        .card h4 {
+            margin: 0;
+            font-size: 16px;
+        }
+
+        .card p {
+            margin: 5px 0 0;
+            color: var(--text-dim);
+            font-size: 14px;
+        }
+
+        /* Player Bar (Bottom) */
+        .player-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 90px;
+            background-color: #121212;
+            border-top: 1px solid #282828;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 20px;
+        }
+
+        .now-playing {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            width: 30%;
+        }
+
+        .now-playing img {
+            width: 56px;
+            height: 56px;
+            border-radius: 4px;
+        }
+
+        .controls {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 40%;
+            gap: 10px;
+        }
+
+        .buttons {
+            font-size: 20px;
+            display: flex;
+            gap: 20px;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 4px;
+            background: #4f4f4f;
+            border-radius: 2px;
+            position: relative;
+        }
+
+        .progress-bar::after {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            height: 100%;
+            width: 45%;
+            background: var(--text-main);
+            border-radius: 2px;
+        }
+
+        .volume-controls {
+            width: 30%;
+            text-align: right;
+            color: var(--text-dim);
+        }
+    </style>
+</head>
+<body>
+
+    <nav>
+        <div class="logo">Pulse.</div>
+        <a href="#">Home</a>
+        <a href="#">Search</a>
+        <a href="#">Your Library</a>
+        <hr style="width: 100%; border: 0.5px solid #282828; margin: 10px 0;">
+        <a href="#">Create Playlist</a>
+        <a href="#">Liked Songs</a>
+    </nav>
+
+    <main>
+        <h2 class="section-title">Jump back in</h2>
+        <div class="grid">
+            <div class="card">
+                <img src="https://via.placeholder.com/150" alt="Album Art">
+                <h4>Lo-Fi Beats</h4>
+                <p>Relaxing study music</p>
+            </div>
+            <div class="card">
+                <img src="https://via.placeholder.com/151" alt="Album Art">
+                <h4>Midnight City</h4>
+                <p>Synthwave essentials</p>
+            </div>
+            <div class="card">
+                <img src="https://via.placeholder.com/152" alt="Album Art">
+                <h4>Top Hits 2026</h4>
+                <p>The hottest tracks right now</p>
+            </div>
+            <div class="card">
+                <img src="https://via.placeholder.com/153" alt="Album Art">
+                <h4>Deep Focus</h4>
+                <p>Stay in the zone</p>
+            </div>
+            <div class="card">
+                <img src="https://via.placeholder.com/154" alt="Album Art">
+                <h4>Acoustic Coffee</h4>
+                <p>Chill morning vibes</p>
+            </div>
+        </div>
+    </main>
+
+    <footer class="player-bar">
+        <div class="now-playing">
+            <img src="https://via.placeholder.com/151" alt="Current Track">
+            <div>
+                <div style="font-weight: bold;">Midnight City</div>
+                <div style="font-size: 12px; color: var(--text-dim);">The Midnight</div>
+            </div>
+        </div>
+
+        <div class="controls">
+            <div class="buttons">
+                <span>⏮</span>
+                <span style="font-size: 30px;">▶</span>
+                <span>⏭</span>
+            </div>
+            <div class="progress-bar"></div>
+        </div>
+
+        <div class="volume-controls">
+            <span>🔊 Volume ————</span>
+        </div>
+    </footer>
+
+</body>
+</html>
