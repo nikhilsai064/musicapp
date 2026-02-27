@@ -1,70 +1,162 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
-    <style>
-.hero {
-    width: 100vw;
-    height: 100vh;
-    background: linear-gradient(135deg, #1db954, #191414);
-    border-radius: 15px;
-    padding: 50px 40px;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-    margin-bottom: 40px;
-    animation: fadeIn 1s ease-in-out;
-    position: fixed;
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pulse Music</title>
+<style>
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family: 'Poppins', sans-serif;
 }
-.hero h1 {
-    font-size: 42px;
-    margin: 0;
-    font-weight: bold;
-    letter-spacing: 1px;
+body{
+    background: linear-gradient(to right, #141e30, #243b55);
+    color:white;
 }
-.hero p {
-    margin: 15px 0 25px;
-    font-size: 18px;
-    color: #f1f1f1;
+nav{
+    display:flex;
+    justify-content:space-between;
+    padding:20px 50px;
+    background: rgba(0,0,0,0.5);
 }
-.explore-btn {
-    width: 180px;
-    padding: 12px 0;
-    border: none;
-    border-radius: 30px;
-    background: white;
-    color: #121212;
-    font-weight: bold;
-    font-size: 15px;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    text-decoration: none;
+nav h2{
+    color:#ff4b2b;
 }
-.explore-btn:hover {
-    transform: scale(1.08);
-    background: #1db954;
-    color: white;
+nav ul{
+    list-style:none;
+    display:flex;
+    gap:30px;
 }
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-        transform: translateY(20px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
+nav ul li a{
+    text-decoration:none;
+    color:white;
 }
-    </style>
+.hero{
+    height:90vh;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    text-align:center;
+}
+
+.hero h1{
+    font-size:60px;
+    margin-bottom:20px;
+}
+.hero p{
+    font-size:20px;
+    margin-bottom:30px;
+}
+.explore-btn{
+    padding:12px 30px;
+    background:#ff4b2b;
+    border:none;
+    border-radius:30px;
+    color:white;
+    text-decoration:none;
+    font-weight:bold;
+    transition:0.3s;
+}
+
+.explore-btn:hover{
+    background:white;
+    color:#ff4b2b;
+}
+.features{
+    display:flex;
+    justify-content:center;
+    gap:40px;
+    padding:80px 20px;
+    text-align:center;
+}
+.feature-box{
+    background:rgba(255,255,255,0.1);
+    padding:30px;
+    border-radius:15px;
+    width:250px;
+    transition:0.3s;
+}
+.feature-box:hover{
+    transform:scale(1.1);
+}
+.trending{
+    padding:80px 20px;
+    text-align:center;
+}
+.song-cards{
+    display:flex;
+    justify-content:center;
+    gap:30px;
+    margin-top:40px;
+}
+.song{
+    background:rgba(255,255,255,0.1);
+    padding:20px;
+    border-radius:15px;
+    width:200px;
+}
+footer{
+    text-align:center;
+    padding:20px;
+    background:black;
+}
+</style>
 </head>
+
 <body>
-    <section class="hero">
-        <h1>Welcome to Pulse 🎵</h1>
-        <p>Your daily dose of music. Discover, Play & Feel the Beat.</p>
-        <button class="explore-btn"><a class="explore-btn" href="../index.html">Explore Now</a></button>
-    </section>
+
+<nav>
+    <h2>Pulse 🎵</h2>
+    <ul>
+        <li><a href="#">Home</a></li>
+        <li><a href="#">Songs</a></li>
+        <li><a href="#">Artists</a></li>
+        <li><a href="#">Contact</a></li>
+    </ul>
+</nav>
+<section class="hero">
+    <h1>Feel The Rhythm 🎶</h1>
+    <p>Your daily dose of music. Discover, Play & Feel the Beat.</p>
+    <a href="#" class="explore-btn">Explore Now</a>
+</section>
+<section class="features">
+    <div class="feature-box">
+        <h3>🎧 Unlimited Music</h3>
+        <p>Stream your favorite tracks anytime.</p>
+    </div>
+    <div class="feature-box">
+        <h3>🔥 Trending Songs</h3>
+        <p>Stay updated with top charts.</p>
+    </div>
+    <div class="feature-box">
+        <h3>❤️ Create Playlists</h3>
+        <p>Make your own music collection.</p>
+    </div>
+</section>
+<section class="trending">
+    <h2>Trending Now 🔥</h2>
+    <div class="song-cards">
+        <div class="song">
+            <h4>Song One</h4>
+            <p>Artist Name</p>
+        </div>
+
+        <div class="song">
+            <h4>Song Two</h4>
+            <p>Artist Name</p>
+        </div>
+
+        <div class="song">
+            <h4>Song Three</h4>
+            <p>Artist Name</p>
+        </div>
+    </div>
+</section>
+<footer>
+    © 2026 Pulse Music | Designed by Ram!!!! 🚀
+</footer>
 </body>
 </html>
