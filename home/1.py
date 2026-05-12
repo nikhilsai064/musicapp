@@ -1,159 +1,175 @@
-product_records = []
+all_predictions = []
 
-for _, row in tqdm(test_df.iterrows(), total=len(test_df)):
-    result = generate_product_embedding_text(row)
+for idx, row in tqdm(test_enriched_df.iterrows(), total=len(test_enriched_df)):
+    supplier_code = supplier_mapping.get(row["supplier_catalog_key"], None)
 
-    record = row.to_dict()
-    record.update(result)
+    initial_candidates = hybrid_retrieve(
+        query_text=row["embedding_text"],
+        query_embedding=row["embedding"],
+        supplier_code=supplier_code,
+        top_k=50
+    )
 
-    if not record.get("embedding_text"):
-        record["embedding_text"] = f"""
-Item Name: {record.get("item_name", "")}
-Supplier: {record.get("supplier_name", "")}
-Catalog: {record.get("catalog_number", "")}
-Description: {record.get("item_name", "")}
-Keywords: {record.get("keywords", "")}
-""".strip()
+    pred_major, pred_minor, major_conf, minor_conf = predict_hierarchy_from_candidates(initial_candidates)
 
-    product_records.append(record)
+    final_candidates = hybrid_retrieve(
+        query_text=row["embedding_text"],
+        query_embedding=row["embedding"],
+        supplier_code=supplier_code,
+        pred_major_class=pred_major,
+        pred_minor_class=pred_minor,
+        top_k=20
+    )
 
-test_enriched_df = pd.DataFrame(product_records)
-test_enriched_df.head()
+    rerank_result = gpt_rerank(
+        product_text=row["embedding_text"],
+        candidates=final_candidates,
+        top_n=10
+    )
 
+    pred_code = normalize_hcpcs(rerank_result.get("best_hcpcs_code", ""))
 
-16
-product_embeddings = []
-
-for text in tqdm(test_enriched_df["embedding_text"]):
-    emb = get_embedding(text)
-    product_embeddings.append(emb)
-
-test_enriched_df["embedding"] = product_embeddings
-test_enriched_df = test_enriched_df[test_enriched_df["embedding"].notna()].reset_index(drop=True)
-
-
-17
-def predict_hierarchy_from_candidates(candidates):
-    if not candidates:
-        return "", "", 0.0, 0.0
-
-    major_scores = {}
-    minor_scores = {}
-
-    for c in candidates[:20]:
-        major = c.get("major_class", "")
-        minor = c.get("minor_class", "")
-        score = c.get("hybrid_score", 0)
-
-        major_scores[major] = major_scores.get(major, 0) + score
-        minor_scores[minor] = minor_scores.get(minor, 0) + score
-
-    pred_major = max(major_scores, key=major_scores.get) if major_scores else ""
-    pred_minor = max(minor_scores, key=minor_scores.get) if minor_scores else ""
-
-    major_conf = major_scores.get(pred_major, 0) / (sum(major_scores.values()) + 1e-9)
-    minor_conf = minor_scores.get(pred_minor, 0) / (sum(minor_scores.values()) + 1e-9)
-
-    return pred_major, pred_minor, major_conf, minor_conf
-
-18
-
-def gpt_rerank(product_text, candidates, top_n=10, retries=3):
-    candidate_text = ""
-
-    for i, c in enumerate(candidates[:top_n], start=1):
-        candidate_text += f"""
-Candidate {i}
-HCPCS Code: {c.get("hcpcs_code", "")}
-Major Class: {c.get("major_class", "")}
-Minor Class: {c.get("minor_class", "")}
-Short Description: {c.get("short_description", "")}
-Long Description: {c.get("long_description", "")}
-Semantic Text: {c.get("embedding_text", "")}
-Hybrid Score: {c.get("hybrid_score", 0)}
-"""
-
-    prompt = f"""
-You are an expert HCPCS coding reranker.
-
-Given one product and candidate HCPCS codes, choose the best matching HCPCS code.
-
-Rules:
-- Select only from the provided candidates.
-- Pay close attention to product type, material, sterility, size, dosage, units, and usage.
-- Do not invent a new HCPCS code.
-- Return valid JSON only.
-
-Product:
-{product_text}
-
-Candidates:
-{candidate_text}
-
-Return JSON:
-{{
-  "best_hcpcs_code": "",
-  "confidence": 0.0,
-  "reason": "",
-  "top_3_codes": []
-}}
-"""
-
-    for attempt in range(retries):
-        try:
-            response = client.chat.completions.create(
-                model=LLM_DEPLOYMENT,
-                messages=[
-                    {"role": "system", "content": "You are an HCPCS coding reranker. Return JSON only."},
-                    {"role": "user", "content": prompt}
-                ],
-                temperature=0
-            )
-
-            content = response.choices[0].message.content
-            result = safe_json_loads(content)
-
-            return result
-
-        except Exception as e:
-            print(f"Rerank error attempt {attempt + 1}: {e}")
-            time.sleep(2)
-
-    fallback = candidates[0] if candidates else {}
-    return {
-        "best_hcpcs_code": fallback.get("hcpcs_code", ""),
-        "confidence": fallback.get("hybrid_score", 0),
-        "reason": "Fallback to highest hybrid score",
-        "top_3_codes": [c.get("hcpcs_code", "") for c in candidates[:3]]
+    candidate_lookup = {
+        c["hcpcs_code"]: c for c in final_candidates
     }
 
-19
-def rule_validation(product_row, predicted_candidate):
-    violations = []
+    predicted_candidate = candidate_lookup.get(
+        pred_code,
+        final_candidates[0] if final_candidates else {}
+    )
 
-    product_text = clean_text(product_row.get("embedding_text", ""))
-    candidate_text = clean_text(predicted_candidate.get("embedding_text", ""))
+    rule_result = rule_validation(row, predicted_candidate)
 
-    if "sterile" in product_text and "non sterile" in candidate_text:
-        violations.append("Sterility mismatch")
+    rerank_conf = float(rerank_result.get("confidence", 0) or 0)
 
-    if "non sterile" in product_text and "sterile" in candidate_text and "non sterile" not in candidate_text:
-        violations.append("Sterility mismatch")
+    if rerank_conf > 1:
+        rerank_conf = rerank_conf / 100
 
-    product_type = clean_text(product_row.get("product_type", ""))
-    candidate_type = clean_text(predicted_candidate.get("product_type", ""))
+    hybrid_score = float(predicted_candidate.get("hybrid_score", 0))
 
-    if product_type and candidate_type and product_type not in candidate_type and candidate_type not in product_type:
-        violations.append("Product type mismatch")
+    final_confidence = (
+        0.50 * rerank_conf +
+        0.25 * hybrid_score +
+        0.15 * major_conf +
+        0.10 * minor_conf
+    )
 
-    return {
-        "rule_passed": len(violations) == 0,
-        "rule_violations": violations
-    }
-    def confidence_bucket(score):
-    if score >= 0.85:
-        return "HIGH"
-    elif score >= 0.65:
-        return "MEDIUM"
-    else:
-        return "LOW"
+    if supplier_code == pred_code:
+        final_confidence += 0.10
+
+    if not rule_result["rule_passed"]:
+        final_confidence -= 0.20
+
+    final_confidence = max(0, min(1, final_confidence))
+
+    retrieved_codes = [c["hcpcs_code"] for c in final_candidates]
+    top_3_codes = rerank_result.get("top_3_codes", retrieved_codes[:3])
+
+    prediction_record = row.drop(labels=["embedding"]).to_dict()
+
+    prediction_record.update({
+        "supplier_history_code": supplier_code,
+        "pred_major_class": pred_major,
+        "major_confidence": major_conf,
+        "pred_minor_class": pred_minor,
+        "minor_confidence": minor_conf,
+        "retrieved_top_20_codes": retrieved_codes,
+        "reranked_top_3_codes": top_3_codes,
+        "pred_hcpcs_code": pred_code,
+        "rerank_reason": rerank_result.get("reason", ""),
+        "rerank_confidence": rerank_conf,
+        "final_confidence": final_confidence,
+        "confidence_bucket": confidence_bucket(final_confidence),
+        "rule_passed": rule_result["rule_passed"],
+        "rule_violations": rule_result["rule_violations"],
+        "needs_human_review": final_confidence < 0.85,
+        "top_1_correct": pred_code == row["true_hcpcs_code"],
+        "top_3_correct": row["true_hcpcs_code"] in top_3_codes,
+        "retrieval_recall_at_5": row["true_hcpcs_code"] in retrieved_codes[:5],
+        "retrieval_recall_at_10": row["true_hcpcs_code"] in retrieved_codes[:10],
+        "retrieval_recall_at_20": row["true_hcpcs_code"] in retrieved_codes[:20],
+    })
+
+    all_predictions.append(prediction_record)
+
+predictions_df = pd.DataFrame(all_predictions)
+predictions_df.head()
+
+
+21
+metrics = {
+    "total_records": len(predictions_df),
+
+    "retrieval_recall_at_5": predictions_df["retrieval_recall_at_5"].mean(),
+    "retrieval_recall_at_10": predictions_df["retrieval_recall_at_10"].mean(),
+    "retrieval_recall_at_20": predictions_df["retrieval_recall_at_20"].mean(),
+
+    "top_1_accuracy": predictions_df["top_1_correct"].mean(),
+    "top_3_accuracy": predictions_df["top_3_correct"].mean(),
+
+    "high_confidence_coverage": (predictions_df["confidence_bucket"] == "HIGH").mean(),
+    "human_review_rate": predictions_df["needs_human_review"].mean(),
+
+    "high_confidence_accuracy": predictions_df[
+        predictions_df["confidence_bucket"] == "HIGH"
+    ]["top_1_correct"].mean()
+}
+
+metrics_df = pd.DataFrame([metrics])
+
+print("===== HCPCS Metrics Summary =====")
+display(metrics_df.T)
+
+
+22
+confidence_metrics = (
+    predictions_df
+    .groupby("confidence_bucket")
+    .agg(
+        total=("pred_hcpcs_code", "count"),
+        top_1_accuracy=("top_1_correct", "mean"),
+        top_3_accuracy=("top_3_correct", "mean"),
+        avg_confidence=("final_confidence", "mean")
+    )
+    .reset_index()
+)
+
+display(confidence_metrics)
+
+23
+error_df = predictions_df[predictions_df["top_1_correct"] == False].copy()
+
+error_columns = [
+    "item_name",
+    "supplier_name",
+    "catalog_number",
+    "true_hcpcs_code",
+    "pred_hcpcs_code",
+    "supplier_history_code",
+    "pred_major_class",
+    "pred_minor_class",
+    "retrieved_top_20_codes",
+    "reranked_top_3_codes",
+    "final_confidence",
+    "confidence_bucket",
+    "rule_passed",
+    "rule_violations",
+    "rerank_reason"
+]
+
+error_df = error_df[error_columns]
+
+display(error_df.head(20))
+
+24
+predictions_df.to_csv("hcpcs_predictions_with_tracking.csv", index=False)
+error_df.to_csv("hcpcs_error_analysis.csv", index=False)
+metrics_df.to_json("hcpcs_metrics_summary.json", orient="records", indent=2)
+confidence_metrics.to_csv("hcpcs_confidence_metrics.csv", index=False)
+
+print("Saved files:")
+print("hcpcs_predictions_with_tracking.csv")
+print("hcpcs_error_analysis.csv")
+print("hcpcs_metrics_summary.json")
+print("hcpcs_confidence_metrics.csv")
+
